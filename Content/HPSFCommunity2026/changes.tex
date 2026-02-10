@@ -1,0 +1,474 @@
+\input{KokkosTutorial_PreTitle}
+\usepackage{tikz}
+\graphicspath{{4_6/figures/}}
+\usepackage{multicol}
+\usepackage{pgfplots}
+
+%disclaimer for Sandia. uncomment and the whole blob goes away @ b80c116300122
+% \def\sandid{SANDXXXX PE}
+\def\ornlid{THIS WILL NEED TO BE UPDATED AFTER RESOLUTION}
+
+% \title{Performance Portability with Kokkos}
+\title{Kokkos Core Updates}
+
+%BAD misuse of author field
+\author{Daniel Arndt}
+
+\date{HPSF Community Summit 2026, 02/27/2026}
+
+\input{KokkosTutorial_PostTitle}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\section {Changes since Kokkos 4}
+
+\begin{frame}
+  \vfill
+  \centering
+  \textbf{\huge{Changes since Kokkos 4}}
+  \vfill
+  \end{frame}
+
+\begin{frame}[fragile]{Multi-GPU support for CUDA, HIP, and SYCL}
+  \begin{itemize}
+    \item Launch kernels on multiple devices from a single host process
+    \item Requires direct use of native runtime for creating and destroying streams/queues
+    \item Experimental, still looking for feedback from new users
+    \item New documentation (for all backends)  
+      \begin{itemize} 
+        \item[] \url{https://kokkos.org/kokkos-core-wiki/API/core/MultiGPUSupport.html}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Multi-GPU for HIP Backend}
+  \begin{code}[keywords={auto}]
+// Create streams on different devices
+hipStream_t streams[2];
+hipSetDevice(0); hipStreamCreate(&streams[0]);
+hipSetDevice(1); hipStreamCreate(&streams[1]);
+{
+  // Creating execution spaces 
+  Kokkos::HIP exec0(streams[0]), exec1(streams[1]);
+
+  // Allocating views
+  Kokkos::View<int*> v0(Kokkos::view_alloc("v0", exec0), N);
+  Kokkos::View<int*> v1(Kokkos::view_alloc("v1", exec1), M);
+
+  // Launch kernels (run concurrently)
+  Kokkos::parallel_for(Kokkos::RangePolicy(exec0, 0, N), functor0);
+  Kokkos::parallel_for(Kokkos::RangePolicy(exec1, 0, M), functor1);
+}
+// Destroy streams (after execution spaces are deleted)
+hipStreamDestroy(streams[0]); hipStreamDestroy(streams[1]);
+  \end{code}
+\end{frame}
+
+
+\begin{frame}[fragile]{Many Team-Level Algorithms}
+
+\begin{itemize}
+\item Defined in header \texttt{<Kokkos\_StdAlgorithms.hpp>}
+\item Extended API with a new overload for team-level support
+
+\begin{code}[keywords={sort}]
+template <class TeamHandleT, ...>
+KOKKOS_FUNCTION
+/*ret type*/ algo_name(const TeamHandleT& /*teamHandle*/,
+                       /*view(s) or iterators*/,
+                       /*extra*/);
+\end{code}
+
+\item \texttt{teamHandle}: given in parallel region when using TeamPolicy
+
+\item \texttt{view(s)}: rank-1, \texttt{LayoutLeft,Right,Stride}
+
+\item \texttt{iterators}: must be random access (use \texttt{Kokkos::Experimental::begin,end,cbegin,cend})
+
+\item views and iterators must be accessible from \texttt{space} or from the space associated with \texttt{teamHandle}
+
+\item \texttt{extra}: parameters that are specific to the algorithm
+
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Many Team-Level Algorithms}
+
+\begin{columns}
+\begin{column}{0.25\textwidth}
+\begin{itemize}
+\item AdjacentFind
+\item Count[If]
+\item ForEach[N]
+\item Lexicographical Compare
+\item Mismatch
+\item Equal
+\item Search
+\item FindEnd
+\item FindFirstOf
+\item Find\{If,IfNot\}
+\item Unique
+\end{itemize}
+\end{column} 
+\begin{column}{0.25\textwidth}
+\begin{itemize}
+\item AllOf
+\item AnyOf
+\item NoneOf
+\item SearchN
+\item MinElement
+\item MaxElement
+\item MinMaxElement
+\item Fill[N]
+\item Replace \{If,Copy,CopyIf\}
+\item Reverse[Copy]
+\item SwapRanges
+\end{itemize}
+\end{column} 
+\begin{column}{0.25\textwidth}
+\begin{itemize}
+\item Rotate[Copy]
+\item Move[Backward]
+\item Shift \{Left,Right\}
+\item Copy \{N,Backward,If\}
+\item UniqueCopy
+\item Remove \{If,Copy,CopyIf\}
+\item Transform
+\item Generate[N]
+\item InclusiveScan
+\end{itemize}
+\end{column} 
+\begin{column}{0.25\textwidth}
+\begin{itemize}
+\item Adjacent Difference
+\item Reduce
+\item Transform Reduce
+\item IsSorted[Until]
+\item IsPartitioned
+\item PartitionCopy
+\item PartitionPoint
+\item ExclusiveScan
+\item Transform \{In,Ex\}clusiveScan
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Build Systems Update}
+  \begin{itemize}
+    \item support external Kokkos in Trilinos
+    \item support building with hidden visibility, e.g., for \texttt{pybind11}
+    \item deprecate Makefile support
+    \item export \texttt{Kokkos\_{CUDA,HIP}\_ARCHITECTURES} for support with \texttt{Kokkos\_ENABLE\_COMPILE\_AS\_CMAKE\_LANGUAGE}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{MDSpan-based View Implementation}
+  % what
+  \begin{itemize}
+    \item View was refactored to use \texttt{mdspan}, a C++23 addition to the standard library
+    \begin{itemize}
+      \item \texttt{mdspan} is backported to C++17/C++20, and our implementation can be found at \url{github.com/kokkos/mdspan/}
+    \end{itemize}
+    \item The goal of this refactor was to provide better library interoperability, more API flexibility, and reduced maintenance burden
+    \item In principle, this update should be fully transparent; i.e. your existing code should work as it did before and we've done extensive testing to ensure this
+  \item What does this mean for applications?
+  \begin{itemize}
+    \item We use the same customization points as mdspan now, including accessors and layout mappings
+    \item In the future, we may provide a mechanism for users to customize these. Would that be useful for people?
+  \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{SYCL reaches production-level support}
+  \begin{itemize}
+    \item Development started in 3.3.00 matu    ring and tracking changes to hardware and software for Aurora and its testbeds
+    \item Moved out of \texttt{Experimental} in Kokkos 4.5.00
+    \item Apart from Intel GPUs, tested with NVIDIA GPUs (CI) and AMD GPUs (WIP)
+    \item Aurora opened to the public in Februrary 2025, currently \#3 in the Top500
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Sorting improvements}
+  \begin{itemize}
+\item Improve sorting performance by using GPU libraries
+\item Improve performance of \texttt{Kokkos::sort} when \texttt{std::sort} is used
+\item Add \texttt{Experimental::sort\_by\_key} algorithm
+\item Support custom comparator in \texttt{Kokkos::sort}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Experimental SIMD changes}
+  \begin{itemize}
+    \item \texttt{native\_simd}, \texttt{native\_simd\_mask} \textbf{deprecated} to align with the C++26 standard
+    \item \textbf{Removed} Obtaining a reference from SIMD \texttt{operator[]} to align with the C++26 Standard
+    \item \textbf{Changed} the return type of SIMD \texttt{operator==} and \texttt{operator!=} to return SIMD masks instead of \texttt{bool}
+    \begin{itemize}
+      \item If you want old behavior, use \texttt{all\_of(a == b)}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{TeamMDRangePolicies API}}
+
+API for TeamThreadMDRange, TeamVectorMDRange and ThreadVectorMDRange
+
+\vspace{10pt}
+
+\begin{code}[keywords={TeamVectorMDRange}]
+ parallel_for(
+   TeamVectorMDRange<Rank<2>, TeamHandle>(team_handle, N, M),
+   [=](int i, int j) { /* ... */ }
+ );
+\end{code}
+
+\vspace{10pt}
+
+\begin{itemize}
+  \item Takes in \texttt{Rank<N,OuterDir,InnerDir>} that describes its iteration pattern
+  \item Same behavior as regular \texttt{MDRangePolicy}
+  \begin{itemize}
+    \item \texttt{N} is number of dimensions (required to be [2, 8])
+    \item \texttt{Iterate} is an \texttt{enum \{ Default, Left, Right \}}
+    \item \texttt{Iterate} is used to choose iterating left-most dimension or right-most dimension
+    \item Only \texttt{OuterDir} is used for \texttt{TeamMDRange}
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Thread-Safety}
+  \begin{itemize}
+    \item Submitting kernels from multiple threads to the same execution space instance allowed
+    \item They are guaranteed not to run concurrently. 
+    \item Requires locks even in synchronous execution spaces like \texttt{Serial} and \texttt{OpenMP}.
+    \item \texttt{Kokkos\_ENABLE\_ATOMICS\_BYPASS} disables locks and atomics for the \texttt{Serial} backend
+    \item Impact on View of View misuse and kernel in kernel calls.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Thread-Safety}
+\begin{code}
+  Kokkos::View<int> view("view");
+  Kokkos::View<int> error("error");
+  auto lambda = [=]() {
+    Kokkos::parallel_for(
+      Kokkos::RangePolicy<>(exec, 0, 1), KOKKOS_LAMBDA(int) {
+          Kokkos::atomic_store(view.data(), 0);
+          for (int i = 0; i < N; ++i) Kokkos::atomic_inc(view.data());
+          if (Kokkos::atomic_load(view.data()) != N)
+            Kokkos::atomic_store(error.data(), 1);
+        });
+  };
+  std::thread t1(lambda);
+  std::thread t2(lambda);
+  t1.join();
+  t2.join();
+\end{code}
+\end{frame}
+
+\begin{frame}[fragile]{View of Views: Introduce new SequentialHostInit view allocation property}
+\textbf{To create a \textit{normal} \texttt{View} the objects it views need to be:}
+\begin{itemize}
+  \item default-constructible in the View associated execution space
+  \item destructible in the View associated execution space 
+\end{itemize}
+
+\vspace{10pt}
+
+\textbf{This Means:} Default constructor and desctructor:
+\begin{itemize}
+\item{must be \texttt{KOKKOS\_FUNCTION} (or defaulted)}
+\item{can't allocate or deallocate data}
+\item{can't call Kokkos parallel operations (\texttt{parallel\_for} etc.)}
+\item{can't create or destroy Views!}
+\end{itemize}
+
+\vspace{10pt}
+\begin{center}
+\textit{If your object does any of these things it is "Complicated"!}
+\end{center}
+
+\end{frame}
+
+%==========================================================================
+
+\begin{frame}[fragile]{View of Views: Introduce new SequentialHostInit view allocation property}
+
+\begin{itemize}
+\item Construction and Destruction of objects will happen sequentially on Host!
+\item Backported to 4.4.1
+\end{itemize}
+
+\begin{code}
+using Complicated = Kokkos::View<T*, SomeMemorySpace>
+View<Complicated**, HostSpace> v(view_alloc("v", SequentialHostInit), 2, 3);
+// copy assign elements
+v(0,0) = Complicated("w00", 4);
+v(1,0) = Complicated("w10", 5);
+v(0,1) = Complicated("w01", 6);
+// v.~View() handles properly elements destruction
+\end{code}
+
+\vspace{10pt}
+\textbf{Requirements for generic "Complicated" types:}
+\begin{itemize}
+\item \texttt{T} is default constructible and destructible on host
+\item \texttt{SomeMemorySpace} is host accessible (e.g. \texttt{SharedSpace} or \texttt{HostSpace})
+\end{itemize}
+\end{frame}
+
+%==========================================================================
+
+
+
+\begin{frame}[fragile]{Miscellaneous}
+  \begin{itemize}
+    \item \texttt{Kokkos::printf}
+    \item \texttt{KOKKOS\_RELOCATABLE\_FUNCTION}
+    \item improved half-precision support (numeric traits, math functions, special values)
+    \item \texttt{ScopedRegion}
+    \item \texttt{CTAD} for various classes
+    \item bit manipulation functions
+    \item \texttt{Graph} improvements
+    \item Static analysis with \texttt{clang-tidy} addressed almost all of \texttt{bugprone-*} checks
+    \item support building with no-RTTI
+    \item precondition violations on policies checking for convertibility of bounds to index type.
+\end{itemize}
+\end{frame}
+
+\section{Kokkos 5 and beyond}
+
+\begin{frame}
+  \vfill
+  \centering
+  \textbf{\huge{Kokkos 5 and beyond}}
+  \vfill
+  \end{frame}
+
+\begin{frame}[fragile]{Self-similar API}
+\begin{code}
+template <class Exec, class X, class Y>
+KOKKOS_INLINE_FUNCTION void sum_views(const Exec& exec, const X& x, const Y& y) { 
+  Kokkos::parallel_for( Kokkos::RangePolicy(exec, 0, x.extent(0)),
+    KOKKOS_LAMBDA(const int& i) { x(i) += y(i); });
+}
+
+// Can be called from host:
+sum_views(exec_space, x, y);
+
+// Can be called in team policy loop
+Kokkos::parallel_for(TeamPolicy, KOKKOS_LAMBDA(team) {
+  sum_views(team, x, y);
+});
+\end{code}
+\end{frame}
+
+\begin{frame}[fragile]{C++20 module support}
+
+Kokkos 5 added support for C++20 modules
+\begin{itemize}
+\item Tested with clang-19 and expected to work with host backends
+\end{itemize}
+Available modules
+\begin{columns}
+\begin{column}{.5\linewidth}
+\begin{itemize}
+\item \texttt{kokkos.core}
+\item \texttt{kokkos.bitset}
+\item \texttt{kokkos.dual\_view}
+\item \texttt{kokkos.dyn\_rank\_view}
+\item \texttt{kokkos.dynamic\_view}
+\item \texttt{kokkos.error\_reporter}
+\item \texttt{kokkos.functional}
+\end{itemize}
+\end{column}
+\begin{column}{.5\linewidth}
+\begin{itemize}
+\item \texttt{kokkos.offset\_view}
+\item \texttt{kokkos.scatter\_view}
+\item \texttt{kokkos.unordered\_map}
+\item \texttt{kokkos.random}
+\item \texttt{kokkos.sort}
+\item \texttt{kokkos.std\_algorithms}
+\item \texttt{kokkos.simd}
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{C++20 module support}
+See \url{https://github.com/kokkos/kokkos/tree/develop/example/build_cmake_installed_modules}
+\newline
+\begin{columns}
+\begin{column}{.5\linewidth}
+CMake
+\begin{code}
+# Enable default source code file scanning
+cmake_minimum_required(VERSION 3.28.2)
+project(Example CXX)
+find_package(Kokkos REQUIRED)
+add_executable(example cmake_example.cpp)
+# FIXME_MODULES Use Kokkos::kokkos again
+target_link_libraries(
+  example 
+  Kokkos::kokkoscore)
+\end{code}
+\end{column}
+\begin{column}{.5\linewidth}
+C++
+\begin{code}
+import kokkos.core;
+#include <Kokkos_Macros.hpp>
+
+int main(int argc, char* argv[]) {
+  Kokkos::initialize(argc, argv);
+  [...]
+  Kokkos::finalize();
+}
+\end{code}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{API: StaticBatchSize}
+  New execution policy trait: \texttt{Kokkos::Experimental::StaticBatchSize<N>}
+  \begin{itemize}
+    \item Allows users to specify a loop unrolling factor at compile time
+    \item Only effective for \texttt{RangePolicy} in the CUDA backend for now
+  \end{itemize}
+  Example usage:
+  \begin{code}[keywords={using,auto}]
+    // Define a batch size of 4
+    using unroll_4 = Kokkos::Experimental::StaticBatchSize<4>;
+    // Use in RangePolicy
+    Kokkos::RangePolicy<ExecSpace, unroll_4> policy(0, N);
+    // Execute parallel_for with static batch size
+    Kokkos::parallel_for(policy, KOKKOS_LAMBDA(const int i) {
+      ...
+    });
+  \end{code}
+\end{frame}
+
+\begin{frame}{Miscellaneous}
+\begin{itemize}
+\item C++20 requirement
+\item \texttt{NextSilicon} backend
+\item Full mathematical functions
+\item \texttt{MDRangePolicy} refactor
+\item \texttt{OpenMPTarget} removed
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \vfill
+  \centering
+  \textbf{\huge{Questions?}}
+  \vfill
+  \end{frame}
+
+\end{document}
