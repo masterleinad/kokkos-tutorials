@@ -1,0 +1,38 @@
+\input{KokkosTutorial_PreTitle}
+\usepackage{tikz}
+\graphicspath{{assets/images}}
+\usepackage{multicol}
+\usepackage{pgfplots}
+
+%disclaimer for Sandia. uncomment and the whole blob goes away @ b80c116300122
+% \def\sandid{SANDXXXX PE}
+\def\ornlid{THIS WILL NEED TO BE UPDATED AFTER RESOLUTION}
+
+% \title{Performance Portability with Kokkos}
+\title{Kokkos Core Updates}
+
+%BAD misuse of author field
+\author{Daniel Arndt}
+
+\date{HPSF Community Summit 2026, 02/27/2026}
+
+\input{KokkosTutorial_PostTitle}
+
+% Captions
+\newcommand{\mycaption}[1]{%
+    \begin{center}
+        \scriptsize #1
+    \end{center}%
+}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\input{introduction}
+\input{kokkos_ecosystem}
+\input{changes}
+
+\end{document}

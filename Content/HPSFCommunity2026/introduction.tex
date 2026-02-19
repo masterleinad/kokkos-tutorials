@@ -1,0 +1,164 @@
+\section{Introduction}
+
+\begin{frame}
+  \vfill
+  \centering
+  \textbf{\huge{Introduction}}
+  \vfill
+\end{frame}
+
+\begin{frame}
+    \begin{center}
+        \includegraphics[width=0.8\textwidth]{top500_cpu_gpu_share_history.png}
+    \end{center}
+
+    \structure{Note:} Does not include exotic accelerators (Intel Knights Landing, etc.)
+\end{frame}
+
+% _____________________________________________________________________________
+
+\begin{frame}{Current supercomputers hardware}
+    \begin{center}
+        \includegraphics[width=\textwidth]{top10_super_computers.png}
+
+        \mycaption{Extract of the Top500 (top supercomputers in the world) in November 2025}
+    \end{center}
+    \vspace{-10pt}
+    \begin{itemize}
+        \item Heterogeneous nodes: mix of CPU and GPU accelerators
+        \item Many CPU (AMD, Intel, NVIDIA) and GPU vendors (AMD, Intel, NVIDIA)
+    \end{itemize}
+\end{frame}
+
+% _____________________________________________________________________________
+
+\begin{frame}{EuroHPC supercomputers hardware}
+    \begin{center}
+        \includegraphics[width=1\textwidth]{euroHPC.png}
+
+        \mycaption{EuroHPC supercomputers}
+    \end{center}
+\end{frame}
+
+% _____________________________________________________________________________
+
+\begin{frame}{Parallel programming models and libraries in numerical science}
+    \begin{center}
+        \includegraphics[width=\textwidth]{prog_model.png}
+    \end{center}
+    \begin{itemize}
+        \item Performance portability is one thing
+        \item But we will see that developers need more
+    \end{itemize}
+\end{frame}
+
+% _____________________________________________________________________________
+
+\begin{frame}{Performance, portability and productivity}
+    \begin{columns}[T]
+        \begin{column}{0.45\linewidth}
+            \begin{center}
+            \textbf{What \emph{most developers} want}
+            \end{center}
+            \begin{description}[Performance]
+                \item[Performance] Get the best performance on a specific hardware
+                \item[Portability] Run the same code on different hardware
+                \item[Productivity] Write code quickly and easily, maintain and extend code, leverage architecture optimization
+            \end{description}
+        \end{column}
+        \pause
+        \begin{column}{0.55\linewidth}
+            \begin{center}
+                \textbf{What \emph{developers for science} also want}
+            \end{center}
+            \begin{description}[Interporability]
+                \item[Maturity] Production-ready (i.e. not research product)
+                \item[Community] Contributors, support, documentation, examples
+                \item[Longevity] Long-term maintenance, bug fixes, updates, sponsorship
+                \item[Interporability] Possibility to easily couple with other libraries and tools (IO, Linear Algebra, Machine Learning, etc.)
+            \end{description}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% _____________________________________________________________________________
+
+\begin{frame}{Do \emph{you} need performance portability?}
+    \begin{columns}[T]
+        \begin{column}{0.6\linewidth}
+            \begin{center}
+                \textbf{Probably \emph{yes} if you...}
+            \end{center}
+            \begin{itemize}
+                \item Want your code to run on different hardware technologies (CPU, GPU)
+                \item Have performance requirements
+                \item Cannot afford to maintain and optimize different versions of your code for each possible hardware of the market
+                \item Want to focus on algorithmic and not on code development
+                \item Want your code to be easily maintainable and readable by others, especially non experts
+            \end{itemize}
+        \end{column}
+        \pause
+        \begin{column}{0.4\linewidth}
+            \begin{center}
+                \textbf{Probably \emph{no} if you...}
+            \end{center}
+            \begin{itemize}
+                \item Need to tune your algorithms to work as fast as possible on a given hardware
+                \item Want to explore a new architecture
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% _____________________________________________________________________________
+
+\begin{frame}{Kokkos programming model}
+    Kokkos is a performance portability parallel programming model built upon the C++-20 standard, designed to abstract already existing parallel programming models
+
+    \vspace{0.5em}
+
+    \begin{center}
+        \includegraphics[width=0.9\textwidth]{kokkos_model.png}
+    \end{center}
+    \begin{itemize}
+        \item Kokkos provides data structures and functions based on modern C++ to build your application
+        \item Developers never directly use underlying backends (no Cuda kernels for instance)
+    \end{itemize}
+\end{frame}
+
+% _____________________________________________________________________________
+
+\begin{frame}{Kokkos parallelism scope}
+    \begin{itemize}
+        \item Kokkos only handles node-level parallelism
+        \item You still need a model for distributed memory parallelism (e.g.\ MPI, Kokkos-Comm)
+    \end{itemize}
+\end{frame}
+
+% _____________________________________________________________________________
+
+\begin{frame}{What Kokkos provides}
+    \begin{itemize}
+        \item Kokkos' basic capabilities
+        \begin{itemize}
+            \item Abstraction of most parallel patterns used in HPC (loops, reduction, scan)
+            \item Abstracted basic data structures used in science (vectors, multidimensional arrays, sub-arrays, strided arrays, etc)
+        \end{itemize}
+        \pause
+        \item Kokkos' advanced capabilities
+        \begin{itemize}
+            \item Advanced data structure properties
+            \item Thread safety, thread scalability, and atomic operations
+            \item Hierarchical patterns for maximizing parallelism
+        \end{itemize}
+        \pause
+        \item Kokkos' libraries
+        \begin{itemize}
+            \item Profiling, tuning and debugging tools (Kokkos tools)
+            \item Python and Fortran interfaces (PyKokkos, Kokkos-Fortran-interop)
+            \item Linear algebra (Kokkos-Kernels)
+            \item FFT (Kokkos-FFT)
+            \item Distributed memory parallelism (Kokkos-Comm)
+        \end{itemize}
+    \end{itemize}
+\end{frame}
