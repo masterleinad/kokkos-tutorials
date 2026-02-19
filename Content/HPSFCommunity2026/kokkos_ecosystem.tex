@@ -1,0 +1,94 @@
+\section{The Kokkos Ecosystem}
+
+\begin{frame}
+  \vfill
+  \centering
+  \textbf{\huge{The Kokkos Ecosystem}}
+  \vfill
+\end{frame}
+
+% _____________________________________________________________________________
+
+\begin{frame}{Kokkos ecosystem}
+    \begin{center}
+        \includegraphics[width=0.85\textwidth]{kokkos_ecosystem.png}
+    \end{center}
+\end{frame}
+
+% _____________________________________________________________________________
+
+\begin{frame}{Kokkos Kernels}
+    \textbf{Kokkos Kernels:}
+    \begin{itemize}
+        \item A library providing performance portable linear algebra and graph kernels
+        \item Available APIs:
+            \begin{itemize}
+                \item BLAS
+                \item LAPACK
+                \item Batched
+                \item Sparse
+                \item Graph
+            \end{itemize}
+        \item Can wrap vendor optimized libraries: cuBLAS, hipBLAS, oneMKL, ...
+    \end{itemize}
+\end{frame}
+
+% _____________________________________________________________________________
+
+\begin{frame}{Kokkos FFT}
+    \textbf{Kokkos FFT:}
+    \begin{itemize}
+        \item Provides a portable interface to state of the art FFT libraries
+            \begin{itemize}
+                \item FFTW, cuFFT, hipFFT, oneMKL
+            \end{itemize}
+        \item Simple interace for in-place and out-of-place transforms
+        \item 1D, 2D, 3D standard and real FFT functions, batched capabilities
+        \item Distributed FFT in the works
+        \item More details in Paul Gannay's talk
+    \end{itemize}
+\end{frame}
+
+% _____________________________________________________________________________
+
+\begin{frame}{Kokkos Comm}
+    \textbf{Kokkos Comm:}
+    \begin{itemize}
+        \item A communication layer for disributed Kokkos applications
+        \item Supports asynchronous communication routines
+        \item Uses Kokkos Views to simplify the interface
+        \item Supports MPI and NCCL backends
+    \end{itemize}
+\end{frame}
+
+% _____________________________________________________________________________
+
+\begin{frame}{Kokkos Tools}
+    \textbf{Kokkos Tools:}
+    \begin{itemize}
+        \item A collection of debugging and profiling utilities
+        \item Loaded as a shared library at runtime
+        \begin{itemize}
+            \item MemoryUsage
+            \item SimpleKernelTimer
+            \item NVTXConnector
+            \item ROCTXConnector
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+% _____________________________________________________________________________
+
+\begin{frame}{Other projects}
+    \begin{itemize}
+        \item pyKokkos: Python bindings for kokkos
+        \item Kokkos Resilience: Checkpointing extension for Kokkos
+        \item Reference implementation for several C++ standard proposals:
+        \begin{itemize}
+            \item std::mdspan
+            \item std::linalg
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+% _____________________________________________________________________________
