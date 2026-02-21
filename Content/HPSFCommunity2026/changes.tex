@@ -161,7 +161,7 @@ KOKKOS_FUNCTION
 
 \begin{frame}[fragile]{SYCL reaches production-level support}
   \begin{itemize}
-    \item Development started in 3.3.00 matu    ring and tracking changes to hardware and software for Aurora and its testbeds
+    \item Development started in 3.3.00 maturing and tracking changes to hardware and software for Aurora and its testbeds
     \item Moved out of \texttt{Experimental} in Kokkos 4.5.00
     \item Apart from Intel GPUs, tested with NVIDIA GPUs (CI) and AMD GPUs (WIP)
     \item Aurora opened to the public in Februrary 2025, currently \#3 in the Top500
@@ -407,6 +407,35 @@ int main(int argc, char* argv[]) {
 \end{code}
 \end{column}
 \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{C++20 Concepts}
+Kokkos exposes its type traits as C++20 Concepts
+\newline
+\begin{columns}
+\begin{column}{.5\linewidth}
+  \begin{itemize}
+    \item \texttt{Kokkos::ExecutionSpace}
+    \item \texttt{Kokkos::MemorySpace}
+    \item \texttt{Kokkos::ExecutionPolicy}
+  \end{itemize}
+\end{column}
+\begin{column}{.5\linewidth}
+  \begin{itemize}
+    \item \texttt{Kokkos::TeamHandle}
+    \item \texttt{Kokkos::Reducer}
+  \end{itemize}
+\end{column}
+\end{columns}
+\vspace{10pt}
+\begin{code}[keywords={template}]
+// Old SFINAE way
+template <class ExecutionPolicy, class FunctorType,
+          class Enable =
+              std::enable_if_t<is_execution_policy_v<ExecutionPolicy>>>
+// New Concepts way
+template <Kokkos::ExecutionPolicy ExecutionPolicy, typename FunctorType>
+  \end{code}
 \end{frame}
 
 \begin{frame}[fragile]{API: StaticBatchSize}
