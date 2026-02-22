@@ -161,7 +161,7 @@ KOKKOS_FUNCTION
 
 \begin{frame}[fragile]{SYCL reaches production-level support}
   \begin{itemize}
-    \item Development started in 3.3.00 matu    ring and tracking changes to hardware and software for Aurora and its testbeds
+    \item Development started in 3.3.00 maturing and tracking changes to hardware and software for Aurora and its testbeds
     \item Moved out of \texttt{Experimental} in Kokkos 4.5.00
     \item Apart from Intel GPUs, tested with NVIDIA GPUs (CI) and AMD GPUs (WIP)
     \item Aurora opened to the public in Februrary 2025, currently \#3 in the Top500
@@ -212,6 +212,7 @@ API for TeamThreadMDRange, TeamVectorMDRange and ThreadVectorMDRange
     \item \texttt{Iterate} is used to choose iterating left-most dimension or right-most dimension
     \item Only \texttt{OuterDir} is used for \texttt{TeamMDRange}
   \end{itemize}
+  \item Only outermost dimension is parallelized
 \end{itemize}
 \end{frame}
 
@@ -242,7 +243,8 @@ API for TeamThreadMDRange, TeamVectorMDRange and ThreadVectorMDRange
   std::thread t2(lambda);
   t1.join();
   t2.join();
-\end{code}
+\end{code}\\
+\texttt{lambda} is guaranteed not to run concurrently when dispatched to the same execution space instance
 \end{frame}
 
 \begin{frame}[fragile]{View of Views: Introduce new SequentialHostInit view allocation property}
@@ -325,6 +327,7 @@ v(0,1) = Complicated("w01", 6);
   \end{frame}
 
 \begin{frame}[fragile]{Self-similar API}
+Currently, we can't use the same functor to be used in a top-level parallel construct or hierarhical parallelism. The following is allowed in the future:
 \begin{code}
 template <class Exec, class X, class Y>
 KOKKOS_INLINE_FUNCTION void sum_views(const Exec& exec, const X& x, const Y& y) { 
@@ -413,7 +416,8 @@ int main(int argc, char* argv[]) {
   New execution policy trait: \texttt{Kokkos::Experimental::StaticBatchSize<N>}
   \begin{itemize}
     \item Allows users to specify a loop unrolling factor at compile time
-    \item Only effective for \texttt{RangePolicy} in the CUDA backend for now
+    \item Only effective for \texttt{RangePolicy} in the CUDA and HIP backend for now
+    \item Beneficial for memory bound loops with very low instruction level parallelism
   \end{itemize}
   Example usage:
   \begin{code}[keywords={using,auto}]
@@ -426,6 +430,28 @@ int main(int argc, char* argv[]) {
       ...
     });
   \end{code}
+\end{frame}
+
+\begin{frame}[fragile]{API: StaticBatchSize use in ViewFill}
+\begin{table}
+\centering
+\begin{tabular}{|l|r|r|r|r|r|r|r|r|}
+\hline
+\texttt{sizeof(T)} & 1  &  2 &  4 &  8 & 16 & 32 & 64 & 128 \\ 
+\hline
+ 1 & 120 & 341 & 676 & 1330 & 1765 & 946 & 723 & 622 \\
+\hline
+ 2 & 343 & 683 & 1356 & 1752 & 1651 & 1616 & 1101 & 777 \\
+\hline
+ 4 & 687 & 1367 & 1717 & 1675 & 1631 & 1592 & 1524 & 998 \\
+\hline
+ 8 & 1373 & 1725 & 1682 & 1669 & 1632 & 1622 & 1580 & 1541 \\
+\hline
+ 16 & 1728 & 1716 & 1694 & 1679 & 1645 & 1621 & 1627 & 1607 \\
+\hline
+\end{tabular}
+\caption{Achieved memory bandwidth in GB/s for ViewFill on an A100}
+\end{table}
 \end{frame}
 
 \begin{frame}{Miscellaneous}
@@ -444,3 +470,17 @@ int main(int argc, char* argv[]) {
   \textbf{\huge{Questions?}}
   \vfill
   \end{frame}
+
+
+\begin{frame}{Funding Acknowledgments}
+\small
+
+\vspace{-\topsep}\begin{itemize}
+  \item This manuscript has been authored by UT-Battelle, LLC, under Contract
+ No.~DE-AC0500OR22725 with the U.S. Department of Energy.
+\item This research used resources of the Oak Ridge Leadership Computing Facility at the Oak Ridge National
+Laboratory, which is supported by the Office of Science of the U.S. Department of Energy under Contract No. DE-AC05-00OR22725.
+\item This material is based upon work supported by the U.S. Department of Energy, Office of Science, Office of Advanced Scientific Computing Research,
+Next-Generation Scientific Software Technologies program, under contract number DE-AC05-00OR22725 (ORNL)
+\end{itemize}
+\end{frame}
