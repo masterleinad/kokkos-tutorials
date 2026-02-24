@@ -307,7 +307,7 @@ v(0,1) = Complicated("w01", 6);
     \item \texttt{Kokkos::printf}
     \item \texttt{KOKKOS\_RELOCATABLE\_FUNCTION}
     \item improved half-precision support (numeric traits, math functions, special values)
-    \item \texttt{ScopedRegion}
+    \item \texttt{Kokkos::Profiling::ScopedRegion}
     \item \texttt{CTAD} for various classes
     \item bit manipulation functions
     \item \texttt{Graph} improvements
@@ -327,7 +327,7 @@ v(0,1) = Complicated("w01", 6);
   \end{frame}
 
 \begin{frame}[fragile]{Self-similar API}
-Currently, we can't use the same functor to be used in a top-level parallel construct or hierarhical parallelism. The following is allowed in the future:
+Currently, we can't use the same functor to be used in a top-level parallel construct or hierarchical parallelism. The following is allowed in the future:
 \begin{code}
 template <class Exec, class X, class Y>
 KOKKOS_INLINE_FUNCTION void sum_views(const Exec& exec, const X& x, const Y& y) { 
