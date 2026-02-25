@@ -42,7 +42,7 @@
             \begin{itemize}
                 \item FFTW, cuFFT, hipFFT, oneMKL
             \end{itemize}
-        \item Simple interace for in-place and out-of-place transforms
+        \item Simple interface for in-place and out-of-place transforms
         \item 1D, 2D, 3D standard and real FFT functions, batched capabilities
         \item Distributed FFT in the works
         \item More details in Paul Gannay's talk
@@ -58,6 +58,7 @@
         \item Supports asynchronous communication routines
         \item Uses Kokkos Views to simplify the interface
         \item Supports MPI and NCCL backends
+        \item More details in Gabriel Dos Santos' talk
     \end{itemize}
 \end{frame}
 
@@ -82,7 +83,9 @@
 \begin{frame}{Other projects}
     \begin{itemize}
         \item pyKokkos: Python bindings for kokkos
+        \item Kokkos Fortran Interop
         \item Kokkos Resilience: Checkpointing extension for Kokkos
+        \item Kokkos Remote Spaces: Distributed memory extension for Kokkos views
         \item Reference implementation for several C++ standard proposals:
         \begin{itemize}
             \item std::mdspan
@@ -106,11 +109,11 @@
         \begin{itemize}
             \item Improve build system, usability and coherency across projects
             \item Design and maintain Kokkos packages (mostly Spack for now)
-        \item Education and Training
         \end{itemize}
+        \item Education and Training
     \end{itemize}
 
-    You can contribute to these workgroups too!
+    You can contribute to these working groups too!
 \end{frame}
 
 % _____________________________________________________________________________
