@@ -327,7 +327,7 @@ v(0,1) = Complicated("w01", 6);
   \end{frame}
 
 \begin{frame}[fragile]{Self-similar API}
-Currently, we can't use the same functor to be used in a top-level parallel construct or hierarchical parallelism. The following is allowed in the future:
+Currently, we can't use the same functor in both a top-level parallel construct and hierarchical parallelism. The following will be allowed in the future:
 \begin{code}
 template <class Exec, class X, class Y>
 KOKKOS_INLINE_FUNCTION void sum_views(const Exec& exec, const X& x, const Y& y) { 
@@ -468,7 +468,7 @@ int main(int argc, char* argv[]) {
 \begin{itemize}
 \item C++20 requirement
 \item \texttt{NextSilicon} backend
-\item Full mathematical functions
+\item Full support for mathematical functions
 \item \texttt{MDRangePolicy} refactor
 \item \texttt{OpenMPTarget} removed
 \end{itemize}
